@@ -35,20 +35,24 @@ npm install
 2. Create a new app
 3. Add redirect URL: `http://your-domain/api/auth/callback/linkedin`
 
-## Usage
+## Email Authentication (via Gmail)
 
-```tsx
-import AuthLogin from './components/AuthLogin';
+To enable authentication via email, you need to set up a Google App Password.
 
-// Basic usage
-<AuthLogin />
+### Steps to Get a Google App Password
+1. **Enable 2-Step Verification**
+   - Go to [Google My Account Security](https://myaccount.google.com/security).
+   - Under **"Signing in to Google"**, enable **2-Step Verification** (if not already enabled).
 
-// With custom callback URL
-<AuthLogin callbackUrl="/dashboard" />
+2. **Generate an App Password**
+   - In the **"Signing in to Google"** section, click **App Passwords**.
+   - Select **Mail** as the app and **Other (Custom name)**.
+   - Enter a name (e.g., "NextAuth Email Login") and click **Generate**.
+   - Copy the generated password (16-character string).
 
-// With custom styling
-<AuthLogin className="max-w-md mx-auto" />
-```
+3. **Use the App Password in Your `.env.local`**
+   - Set `GMAIL_APP_PASSWORD=your-generated-app-password` in your `.env.local`.
+
 
 ## Environment Variables
 
@@ -64,14 +68,7 @@ GITHUB_SECRET=your-github-client-secret
 
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
+
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-app-password  # Not your personal password; must be generated via Google.
 ```
-
-## Features
-
-- Modern, responsive design
-- Support for Google, GitHub, and LinkedIn authentication
-- TypeScript support
-- Tailwind CSS styling
-- Easy to customize and extend
-- Secure token handling
-- Session management 
