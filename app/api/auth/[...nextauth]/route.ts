@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import LinkedInProvider, { LinkedInProfile } from "next-auth/providers/linkedin";
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { createSession } from "@/utils/auth";
+
 import { db } from "@/utils/db";
 
 const handler = NextAuth({
@@ -36,6 +36,7 @@ const handler = NextAuth({
       },
     }),
     CredentialsProvider({
+      id: "verify-otp",
       name: 'OTP',
       credentials: {
         email: { label: "Email", type: "email" },
@@ -82,8 +83,6 @@ const handler = NextAuth({
           return null;
         }
 
-        await createSession(user.id);
-
         return {
           id: user.id,
           email: user.email,
@@ -92,11 +91,14 @@ const handler = NextAuth({
     }),
   ],
 
-  pages: {
-    signIn: "/test",
-  },
   callbacks: {
     async signIn({ user, account, profile }) {
+
+      if (account?.provider === "verify-otp") {
+        console.log("OTP provider detected; proceeding without profile check.");
+        return true;
+      }
+
       if (!account || !profile) {
         return false;
       }
@@ -124,6 +126,8 @@ const handler = NextAuth({
       return true;
     },
     async jwt({ token, user, account }) {
+      console.log("JWT callback invoked");
+      console.log("Initial token:", token);
       if (user) {
         token.userId = user.id;
         // Add provider-specific URLs if available
@@ -138,6 +142,8 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
+      console.log("Session callback invoked");
+      console.log("Token in session callback:", token);
       if (token && session.user) {
         session.user.id = token.userId as string;
         // Add provider URLs to session if available
@@ -151,6 +157,12 @@ const handler = NextAuth({
         }
       }
       return session;
+    },
+
+    async redirect({ url, baseUrl }) {
+      console.log("Redirect callback invoked with url:", url, "and baseUrl:", baseUrl);
+      // Redirect all successful logins to the dashboard
+      return `${baseUrl}/dashboard`;
     },
   },
   session: {
