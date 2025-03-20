@@ -23,15 +23,6 @@ try {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
-
-    CREATE TABLE IF NOT EXISTS allowed_emails (
-      id TEXT PRIMARY KEY,
-      pattern TEXT NOT NULL UNIQUE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    INSERT OR IGNORE INTO allowed_emails (id, pattern)
-    VALUES ('default', '@aganitha\\.ai$');
   `);
 } catch (error) {
   console.error('Database initialization error:', error);

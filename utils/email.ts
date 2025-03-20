@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { isEmailAllowed } from './auth';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -9,8 +10,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendOTPEmail(email: string, otp: string) {
-  if (!email.endsWith('@aganitha.ai')) {
-    throw new Error('Only @aganitha.ai email addresses are allowed');
+  if (!isEmailAllowed(email)) {
+    throw new Error("Only allowed email addresses can receive OTPs");
   }
 
   await transporter.sendMail({

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateOTP } from '@/utils/auth';
+import { generateOTP, isEmailAllowed } from '@/utils/auth';
 import { sendOTPEmail } from '@/utils/email';
 
 export async function POST(request: Request) {
@@ -8,6 +8,11 @@ export async function POST(request: Request) {
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    if (!isEmailAllowed(email)) {
+      console.log("Email domain not allowed",);
+      return NextResponse.json({ error: 'Email domain not allowed' }, { status: 403 });
     }
 
     const { code, userId } = await generateOTP(email);

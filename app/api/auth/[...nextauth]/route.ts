@@ -121,22 +121,6 @@ const handler = NextAuth({
         user.linkedinUrl = profile.publicProfileUrl;
       }
 
-      // reject request if it does not match regex
-      if (
-        (account.provider === "google" || account.provider === "github") &&
-        user.email
-      ) {
-        const emailRegex = /@aganitha\.ai$/;
-        if (!emailRegex.test(user.email)) {
-          return false; // Reject sign-in if email doesn't match the required domain
-        }
-      } else if (
-        (account.provider === "google" || account.provider === "github") &&
-        !user.email
-      ) {
-        return false; // Reject Google/GitHub sign-in if no email is provided
-      }
-
       return true;
     },
     async jwt({ token, user, account }) {

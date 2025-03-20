@@ -2,6 +2,10 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { db } from '@/utils/db';
 import { randomUUID } from 'crypto';
+import { config } from "dotenv";
+config({path: ".env.emails"}); // Ensure env variables are loaded
+
+
 
 const secret = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || 'your-secret-key-min-32-chars-long!!!'
@@ -90,12 +94,19 @@ export async function generateOTP(email: string) {
   }
 
 export function isEmailAllowed(email: string) {
-  const patterns = db.prepare(`
-    SELECT pattern FROM allowed_emails
-  `).all() as { pattern: string }[];
+  const allowedEmails = process.env.ALLOWED_EMAILS;
+  console.log("Loaded ALLOWED_EMAILS:", JSON.stringify(allowedEmails));
+  if (!allowedEmails) {
+    console.log("No allowed email patterns found in .env");
+    return false;
+  }
 
-  return patterns.some(({ pattern }) => {
-    const regex = new RegExp(pattern);
-    return regex.test(email);
-  });
+  // Split by newline, trim each line, and filter out empty entries
+  // const patterns = allowedEmails.split("\n")
+  //   .map(line => line.trim())
+  //   .filter(line => line !== "");
+
+  const patterns = allowedEmails.split(",").map(line => line.trim()).filter(line => line !== "");
+  console.log("Allowed patterns:", patterns); // Debug log
+  return patterns.some(pattern => new RegExp(pattern).test(email));
 }
