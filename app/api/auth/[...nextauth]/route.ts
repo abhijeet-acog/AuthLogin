@@ -3,8 +3,8 @@ import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import LinkedInProvider, { LinkedInProfile } from "next-auth/providers/linkedin";
 import CredentialsProvider from 'next-auth/providers/credentials';
-
 import { db } from "@/utils/db";
+const ldap = require("ldapjs")
 
 const handler = NextAuth({
   providers: [
@@ -48,7 +48,7 @@ const handler = NextAuth({
 
         if (!credentials?.email || !credentials?.otp || !credentials?.userId) {
           console.log('Missing credentials');
-          return null;
+          throw new Error("Missing OTP credentials");
         }
 
         const result = db.prepare(`
@@ -64,7 +64,7 @@ const handler = NextAuth({
 
         if (!result) {
           console.log('Invalid OTP or expired');
-          return null;
+          throw new Error("Invalid or expired OTP");
         }
 
         db.prepare(`
@@ -80,7 +80,7 @@ const handler = NextAuth({
 
         if (!user) {
           console.log('User not found');
-          return null;
+          throw new Error("User not found");
         }
 
         return {
@@ -89,13 +89,48 @@ const handler = NextAuth({
         };
       },
     }),
+    CredentialsProvider({
+      id: "ldap",
+      name: "LDAP",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        console.log("Authorizing with LDAP credentials:", credentials);
+        if (!credentials?.username || !credentials?.password) {
+          console.log("Missing LDAP credentials");
+          throw new Error("Missing LDAP credentials");
+        }
+    
+        const ldapUrl = process.env.LDAP_URI || "ldap://ldap.example.com";
+        // Construct the user DN using the provided username and the base DN from env.
+        const userDn = `uid=${credentials.username},${process.env.LDAP_USER_DN || "ou=people,dc=example,dc=ai"}`;
+        console.log(`Authenticating with LDAP at ${ldapUrl} using DN: ${userDn}`);
+    
+        const client = ldap.createClient({ url: ldapUrl });
+    
+        return new Promise((resolve, reject) => {
+          client.bind(userDn, credentials.password, (error) => {
+            if (error) {
+              console.error("LDAP authentication failed:", error);
+              reject(new Error("LDAP authentication failed: " + error.message));
+            } else {
+              console.log("LDAP authentication successful");
+              // Return using the existing 'id' field for consistency
+              resolve({ id: credentials.username, email: "" });
+            }
+          });
+        });
+      },
+    }),    
   ],
 
   callbacks: {
     async signIn({ user, account, profile }) {
 
-      if (account?.provider === "verify-otp") {
-        console.log("OTP provider detected; proceeding without profile check.");
+      if (account?.provider === "verify-otp" || account?.provider === "ldap") {
+        console.log(`${account.provider} provider detected; proceeding without profile check.`);
         return true;
       }
 
@@ -157,12 +192,6 @@ const handler = NextAuth({
         }
       }
       return session;
-    },
-
-    async redirect({ url, baseUrl }) {
-      console.log("Redirect callback invoked with url:", url, "and baseUrl:", baseUrl);
-      // Redirect all successful logins to the dashboard
-      return `${baseUrl}/dashboard`;
     },
   },
   session: {

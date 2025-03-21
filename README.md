@@ -57,18 +57,26 @@ To enable authentication via email, you need to set up a Google App Password.
 ## Environment Variables
 
 ```env
+# NextAuth Base URL
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-nextauth-secret
 
+# Google OAuth Credentials
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 
+# GitHub OAuth Credentials
 GITHUB_ID=your-github-client-id
 GITHUB_SECRET=your-github-client-secret
 
+# LinkedIn OAuth Credentials
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
 
+# Email Authentication (via Gmail)
 GMAIL_USER=your-email@gmail.com
 GMAIL_APP_PASSWORD=your-app-password  # Not your personal password; must be generated via Google.
+
+LDAP_URI=ldap://ldap.example.com
+LDAP_USER_DN=ou=people,dc=example,dc=ai
 ```

@@ -15,7 +15,8 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ className = "", callbackUrl = "/"
   const [userId, setUserId] = useState(null);
   const [otp, setOtp] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
+  const [ldapUsername, setLdapUsername] = useState('');
+  const [ldapPassword, setLdapPassword] = useState('')
   useEffect(() => {
     if (userId) {
       inputRefs.current[0]?.focus();
@@ -139,6 +140,32 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ className = "", callbackUrl = "/"
       >
         <FaLinkedin className="text-xl" />
         Sign in with LinkedIn
+      </button>
+
+      <input
+        type="text"
+        value={ldapUsername}
+        onChange={(e) => setLdapUsername(e.target.value)}
+        placeholder="Enter LDAP Username"
+        className="px-4 py-2 border rounded-lg"
+      />
+      <input
+        type="password"
+        value={ldapPassword}
+        onChange={(e) => setLdapPassword(e.target.value)}
+        placeholder="Enter LDAP Password"
+        className="px-4 py-2 border rounded-lg"
+      />
+      <button
+        onClick={() =>
+          signIn("ldap", {
+            username: ldapUsername,
+            password: ldapPassword,
+          })
+        }
+        className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+      >
+        Sign in with LDAP
       </button>
     </div>
   );
